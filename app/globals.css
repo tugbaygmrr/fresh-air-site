@@ -536,7 +536,7 @@ a {
 
 .hero-info-card {
   position: fixed;
-  top: clamp(35%, 42vh, 48%);
+  top: clamp(28%, 36vh, 42%);
   left: clamp(1.5rem, 5vw, 6rem);
   margin: 0;
   width: min(600px, 50vw);

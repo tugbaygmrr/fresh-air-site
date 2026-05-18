@@ -428,7 +428,7 @@ export default function HomePage() {
       <main id="home">
         <section className="hero section">
           <canvas className="hero-bg-video hero-bg-canvas" aria-hidden="true" />
-          <div className="hero-visual-overlay"></div>
+          <div className="hero-visual-overlay" />
           <div className="container hero-grid">
             <aside className="hero-info-card">
               <p className="hero-info-eyebrow">• PROFESYONEL HAVALANDIRMA ÇÖZÜMLERİ</p>
