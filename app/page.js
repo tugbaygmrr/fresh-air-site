@@ -1,0 +1,939 @@
+"use client";
+
+import { useEffect } from "react";
+import Script from "next/script";
+
+export default function HomePage() {
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.12,
+        rootMargin: "0px 0px 8px 0px",
+      }
+    );
+
+    const revealItems = document.querySelectorAll(".reveal");
+    const viewTimeline = CSS.supports("animation-timeline: view()");
+
+    revealItems.forEach((el) => {
+      if (
+        !viewTimeline ||
+        el.closest(".strategy-list") ||
+        el.closest(".services-grid")
+      ) {
+        observer.observe(el);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const section = document.querySelector(".metrics-scroll-section");
+    if (!section) return undefined;
+
+    const cards = Array.from(section.querySelectorAll(".metric-spot-card"));
+    const total = cards.length;
+
+    const updateMetricsCards = () => {
+      const rect = section.getBoundingClientRect();
+      const viewport = window.innerHeight || 1;
+      const start = viewport * 0.18;
+      const end = viewport * 0.75;
+      const progressRaw = (start - rect.top) / (rect.height - end);
+      const progress = Math.min(1, Math.max(0, progressRaw));
+      section.style.setProperty("--metrics-progress", String(progress));
+      const active = Math.min(total - 1, Math.floor(progress * total) - 1);
+
+      cards.forEach((card, idx) => {
+        card.classList.toggle("is-active", idx <= active);
+      });
+    };
+
+    updateMetricsCards();
+    window.addEventListener("scroll", updateMetricsCards, { passive: true });
+    window.addEventListener("resize", updateMetricsCards);
+
+    return () => {
+      window.removeEventListener("scroll", updateMetricsCards);
+      window.removeEventListener("resize", updateMetricsCards);
+    };
+  }, []);
+
+  useEffect(() => {
+    const numberEls = Array.from(document.querySelectorAll(".metric-spot-number"));
+    if (!numberEls.length) return undefined;
+
+    const formatNumber = (value, compact, withPlus) => {
+      const rounded = Math.round(value);
+      if (compact === "K") return `${rounded}K${withPlus ? "+" : ""}`;
+      return `${rounded}${withPlus ? "+" : ""}`;
+    };
+
+    const animated = new WeakSet();
+
+    const runAnimation = (el) => {
+      if (animated.has(el)) return;
+      animated.add(el);
+
+      const target = Number(el.dataset.target || "0");
+      const compact = el.dataset.compact || "";
+      const withPlus = el.dataset.plus !== "0";
+      const duration = 1200;
+      const start = performance.now();
+
+      const step = (now) => {
+        const progress = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = formatNumber(target * eased, compact, withPlus);
+        if (progress < 1) requestAnimationFrame(step);
+      };
+
+      requestAnimationFrame(step);
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            runAnimation(entry.target);
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.45 }
+    );
+
+    numberEls.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const canvas = document.querySelector(".hero-bg-canvas");
+    const heroSection = document.querySelector(".hero");
+    if (!canvas || !heroSection) return undefined;
+
+    const ctx = canvas.getContext("2d");
+    const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+    const LERP = 0.1;
+
+    const frames = [];
+    let lastIdx = -1;
+    let targetProg = 0;
+    let displayProg = 0;
+    let rafId = 0;
+    let isVisible = true;
+
+    const syncSize = () => {
+      const w = canvas.clientWidth || window.innerWidth;
+      const h = canvas.clientHeight || (window.innerHeight - 84);
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+        lastIdx = -1;
+      }
+    };
+
+    const drawFrame = (progress) => {
+      if (!frames.length) return;
+      const idx = clamp(Math.round(progress * (frames.length - 1)), 0, frames.length - 1);
+      if (idx === lastIdx) return;
+      lastIdx = idx;
+      const bm = frames[idx];
+      const cw = canvas.width;
+      const ch = canvas.height;
+      if (!cw || !ch || !bm) return;
+      const scale = Math.max(cw / bm.width, ch / bm.height);
+      const dw = bm.width * scale;
+      const dh = bm.height * scale;
+      ctx.clearRect(0, 0, cw, ch);
+      ctx.drawImage(bm, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
+    };
+
+    const tick = () => {
+      rafId = 0;
+      if (!isVisible) return;
+      const rect = heroSection.getBoundingClientRect();
+      const scrollable = Math.max(1, rect.height - (window.innerHeight || 1));
+      targetProg = clamp(-rect.top / scrollable, 0, 1);
+      const diff = targetProg - displayProg;
+      if (Math.abs(diff) > 0.001) {
+        displayProg += diff * LERP;
+        rafId = requestAnimationFrame(tick);
+      } else {
+        displayProg = targetProg;
+      }
+      drawFrame(displayProg);
+    };
+
+    const scheduleSync = () => { if (!rafId) rafId = requestAnimationFrame(tick); };
+    const onResize = () => { syncSize(); lastIdx = -1; scheduleSync(); };
+
+    const visObs = new IntersectionObserver(
+      ([e]) => { isVisible = e?.isIntersecting ?? true; if (isVisible) scheduleSync(); },
+      { threshold: 0, rootMargin: "80px 0px 80px 0px" }
+    );
+    visObs.observe(heroSection);
+    window.addEventListener("scroll", scheduleSync, { passive: true });
+    window.addEventListener("resize", onResize);
+    syncSize();
+
+    // Kareleri arka planda çek — scroll sırasında seek yok, sadece canvas draw
+    (async () => {
+      try {
+        const vid = document.createElement("video");
+        vid.src = "/hero-latest.mp4";
+        vid.muted = true;
+        vid.playsInline = true;
+        vid.preload = "auto";
+        await new Promise((res, rej) => {
+          vid.addEventListener("loadedmetadata", res, { once: true });
+          vid.addEventListener("error", rej, { once: true });
+          vid.load();
+        });
+        const dur = vid.duration;
+        const n = Math.min(Math.ceil(dur * 10), 60); // 10fps, max 60 kare
+        for (let i = 0; i < n; i++) {
+          vid.currentTime = (i / Math.max(n - 1, 1)) * dur;
+          await new Promise((r) => vid.addEventListener("seeked", r, { once: true }));
+          frames.push(await createImageBitmap(vid));
+          if (i === 0) { syncSize(); drawFrame(0); }
+          else scheduleSync();
+        }
+      } catch (err) {
+        console.warn("Frame extraction failed:", err);
+      }
+    })();
+
+    return () => {
+      visObs.disconnect();
+      window.removeEventListener("scroll", scheduleSync);
+      window.removeEventListener("resize", onResize);
+      if (rafId) cancelAnimationFrame(rafId);
+      frames.forEach((bm) => bm.close?.());
+    };
+  }, []);
+
+  useEffect(() => {
+    const section = document.querySelector(".scroll-features-section");
+    const videoEl = section?.querySelector(".scroll-features-video");
+    if (!section || !videoEl) return undefined;
+
+    const cards = Array.from(section.querySelectorAll(".feature-card"));
+    const total = cards.length;
+
+    videoEl.muted = true;
+    videoEl.playsInline = true;
+    videoEl.loop = false;
+    videoEl.autoplay = false;
+    videoEl.preload = "auto";
+    videoEl.pause();
+
+    const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+    const LERP = 0.1;
+
+    let isVisible = true;
+    let rafId = 0;
+    let targetTime = 0;
+    let displayTime = 0;
+
+    const calcProgress = () => {
+      const rect = section.getBoundingClientRect();
+      const viewport = window.innerHeight || 1;
+      const scrollable = Math.max(1, rect.height - viewport);
+      return clamp(-rect.top / scrollable, 0, 1);
+    };
+
+    const tick = () => {
+      rafId = 0;
+      if (!isVisible) return;
+
+      const progress = calcProgress();
+      const activeIndex = Math.min(total - 1, Math.floor(progress * total));
+      cards.forEach((card, idx) => card.classList.toggle("is-active", idx <= activeIndex));
+
+      const duration = videoEl.duration;
+      if (Number.isFinite(duration) && duration > 0) {
+        targetTime = clamp(progress * duration, 0, Math.max(0, duration - 0.02));
+        const diff = targetTime - displayTime;
+        if (Math.abs(diff) < 0.002) {
+          displayTime = targetTime;
+        } else {
+          displayTime += diff * LERP;
+          rafId = requestAnimationFrame(tick);
+        }
+        try { videoEl.currentTime = displayTime; } catch {}
+      }
+    };
+
+    const scheduleSync = () => {
+      if (!rafId) rafId = requestAnimationFrame(tick);
+    };
+
+    const visObs = new IntersectionObserver(
+      ([e]) => {
+        isVisible = e ? e.isIntersecting : true;
+        if (isVisible) scheduleSync();
+      },
+      { threshold: 0, rootMargin: "80px 0px 80px 0px" }
+    );
+    visObs.observe(section);
+
+    videoEl.addEventListener("loadedmetadata", scheduleSync);
+    videoEl.addEventListener("loadeddata", scheduleSync);
+    window.addEventListener("scroll", scheduleSync, { passive: true });
+    window.addEventListener("resize", scheduleSync);
+    scheduleSync();
+
+    return () => {
+      visObs.disconnect();
+      videoEl.removeEventListener("loadedmetadata", scheduleSync);
+      videoEl.removeEventListener("loadeddata", scheduleSync);
+      window.removeEventListener("scroll", scheduleSync);
+      window.removeEventListener("resize", scheduleSync);
+      if (rafId) cancelAnimationFrame(rafId);
+      videoEl.pause();
+    };
+  }, []);
+
+  useEffect(() => {
+    const heroSection = document.querySelector(".hero");
+    const card = document.querySelector(".hero-info-card");
+    if (!heroSection || !card) return undefined;
+
+    const syncHeroCard = () => {
+      const viewport = window.innerHeight || 1;
+      const heroTop = heroSection.offsetTop;
+      const heroBottom = heroTop + heroSection.offsetHeight;
+      const stickyEnd = heroBottom - viewport;
+      const scrollY = window.pageYOffset || window.scrollY || 0;
+      const fadePx = 380;
+
+      let o;
+      if (scrollY <= stickyEnd - fadePx) o = 1;
+      else if (scrollY >= stickyEnd) o = 0;
+      else o = (stickyEnd - scrollY) / fadePx;
+      if (scrollY >= heroBottom) o = 0;
+
+      card.style.opacity = String(o);
+      card.classList.toggle("hero-card-faded-out", o < 0.02);
+      card.setAttribute("aria-hidden", o < 0.02 ? "true" : "false");
+    };
+
+    syncHeroCard();
+    window.addEventListener("scroll", syncHeroCard, { passive: true });
+    window.addEventListener("resize", syncHeroCard);
+    return () => {
+      window.removeEventListener("scroll", syncHeroCard);
+      window.removeEventListener("resize", syncHeroCard);
+    };
+  }, []);
+
+  return (
+    <>
+      <Script
+        type="module"
+        src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
+        strategy="afterInteractive"
+      />
+      <header className="site-header glass">
+        <div className="container nav">
+          <a className="brand" href="#home">
+            <img
+              className="brand-logo"
+              src="/footer-logo.png"
+              alt="Fresh Air HVAC"
+            />
+          </a>
+          <span className="nav-divider" aria-hidden="true" />
+          <nav className="menu">
+            <button className="is-active" type="button">
+              Ana Sayfa
+            </button>
+            <button type="button">Hakkında</button>
+            <button type="button">Sertifikalar</button>
+            <button type="button">
+              Ürünler
+              <span className="caret" aria-hidden="true">
+                ▾
+              </span>
+            </button>
+            <button type="button">
+              Hizmetler
+              <span className="caret" aria-hidden="true">
+                ▾
+              </span>
+            </button>
+            <button type="button">
+              Çözümler
+              <span className="caret" aria-hidden="true">
+                ▾
+              </span>
+            </button>
+            <button type="button">İletişim</button>
+          </nav>
+          <div className="nav-actions">
+            <div className="lang-picker" aria-label="Dil seçenekleri">
+              <button className="lang-current" type="button">
+                <img
+                  className="flag-icon"
+                  src="https://flagcdn.com/w20/tr.png"
+                  alt=""
+                />
+                TR
+              </button>
+              <div className="lang-list" aria-hidden="true">
+                <span>
+                  <img className="flag-icon" src="https://flagcdn.com/w20/sa.png" alt="" />
+                  Arapça
+                </span>
+                <span>
+                  <img className="flag-icon" src="https://flagcdn.com/w20/gb.png" alt="" />
+                  İngilizce
+                </span>
+                <span>
+                  <img className="flag-icon" src="https://flagcdn.com/w20/fr.png" alt="" />
+                  Fransızca
+                </span>
+                <span>
+                  <img className="flag-icon" src="https://flagcdn.com/w20/de.png" alt="" />
+                  Almanca
+                </span>
+                <span>
+                  <img className="flag-icon" src="https://flagcdn.com/w20/ru.png" alt="" />
+                  Rusça
+                </span>
+                <span>
+                  <img className="flag-icon" src="https://flagcdn.com/w20/tr.png" alt="" />
+                  Türkçe
+                </span>
+              </div>
+            </div>
+            <button className="btn btn-primary nav-cta nav-cta-dark" type="button">
+              Teklif Al
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main id="home">
+        <section className="hero section">
+          <canvas className="hero-bg-video hero-bg-canvas" aria-hidden="true" />
+          <div className="hero-visual-overlay"></div>
+          <div className="container hero-grid">
+            <aside className="hero-info-card">
+              <p className="hero-info-eyebrow">• PROFESYONEL HAVALANDIRMA ÇÖZÜMLERİ</p>
+              <h3>
+                Dünya <span className="hero-grad-title">Fresh Air HVAC&apos;ye</span> ihtiyaç duyuyor
+                - biz de <span className="hero-grad-title">size ihtiyaç duyuyoruz</span>.
+              </h3>
+              <p>
+                Isıtma, havalandırma ve iklimlendirme <span className="hero-grad-text">(HVAC)</span>{" "}
+                çözümlerinde önde gelen bir firma olarak, geleceği bizimle birlikte{" "}
+                <span className="hero-grad-text">şekillendirmeye hazır</span>, kararlı bireylere
+                güveniyoruz. Siz de <span className="hero-grad-text">fark yaratmaya</span> hazır
+                mısınız?
+              </p>
+              <div className="hero-info-actions">
+                <button type="button">PROJENİZ İÇİN TEKLİF ALIN →</button>
+                <a href="#services">ÜRÜNLERİ KEŞFET →</a>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section className="ticker section">
+          <div className="container ticker-content reveal">
+            <div className="trust-panel">
+              <div className="trust-copy">
+                <p className="mini-eyebrow">Güvenilen Üretici</p>
+                <h2>
+                  Dünya çapındaki vizyon sahibi inşaat ve mühendislik ekipleri,
+                  HVAC çözümleri için bu üreticiyi tercih ediyor<span>.</span>
+                </h2>
+              </div>
+              <div className="trust-logos" aria-label="İş ortakları">
+                <div className="trust-logo">
+                  <img src="/trust-logos/abb.svg" alt="ABB" width={140} height={56} loading="lazy" decoding="async" />
+                </div>
+                <div className="trust-logo">
+                  <img src="/trust-logos/honeywell.svg" alt="Honeywell" width={160} height={40} loading="lazy" decoding="async" />
+                </div>
+                <div className="trust-logo">
+                  <img src="/trust-logos/danfoss.svg" alt="Danfoss" width={160} height={48} loading="lazy" decoding="async" />
+                </div>
+                <div className="trust-logo trust-logo--light">
+                  <img src="/trust-logos/belimo.svg" alt="Belimo" width={140} height={44} loading="lazy" decoding="async" />
+                </div>
+              </div>
+            </div>
+            <div className="ticker-row">
+              <p>HVAC Manufacturing</p>
+              <p>Fire Safety Ventilation</p>
+              <p>Jet Fan Systems</p>
+              <p>CFD Analysis</p>
+              <p>Pool Dehumidification</p>
+              <p>Smart Automation</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="about" className="section about-white reveal">
+          <div className="container about-grid">
+            <div className="about-left">
+              <p className="about-eyebrow">Kurumsal</p>
+              <div className="about-item is-active">
+                <h3>Gelişmiş HVAC Sistemleriyle Yönetim Kolaylığı</h3>
+                <p>
+                  Isıtma, havalandırma ve klima (HVAC) sistemlerimiz, kullanıcı
+                  dostu kontrolü akıllı teknolojiyle birleştirerek sorunsuz bir
+                  yönetim sağlar. Gerçek zamanlı izleme ve ayarlamalara olanak
+                  tanıyarak verimliliği ve konforu artırır. Modern mekanlar için
+                  ideal olan bu sistemler, iklim kontrolünü basitleştirerek
+                  rahatlığı gelişmiş işlevsellikle birleştirir.
+                </p>
+              </div>
+              <p className="about-intro">
+                Ev ve iş yerleriniz için en üst düzey konforu sağlamak amacıyla en
+                kaliteli HVAC hizmetlerini sunuyoruz.
+              </p>
+              <a href="#services" className="about-link">
+                Daha fazla bilgi edin
+              </a>
+            </div>
+            <div className="about-media">
+              <model-viewer
+                className="about-model-viewer"
+                src="/models/Meshy_AI_Blue_Spiral_Blossom_0508114958_texture.glb"
+                camera-controls
+                touch-action="pan-y"
+                auto-rotate
+                auto-rotate-delay="1200"
+                rotation-per-second="20deg"
+                shadow-intensity="0.35"
+                environment-image="neutral"
+                exposure="1"
+                interaction-prompt="none"
+                style={{ width: "100%", height: "100%", background: "transparent" }}
+              />
+              <div className="about-stat-grid">
+                <article className="about-stat about-stat--tl">
+                  <h4>Yüksek Verim</h4>
+                  <p>F400 sertifikalı fan sistemleriyle güvenli ve stabil performans.</p>
+                </article>
+                <article className="about-stat about-stat--tr">
+                  <h4>30+ Ülke</h4>
+                  <p>Fresh Air HVAC çözümleri farklı iklim ve proje tiplerinde aktif.</p>
+                </article>
+                <article className="about-stat about-stat--bl">
+                  <h4>50K+ Proje</h4>
+                  <p>Endüstriyel ve ticari sahalarda uygulanan güçlü mühendislik altyapısı.</p>
+                </article>
+                <article className="about-stat about-stat--br">
+                  <h4>7/24 Destek</h4>
+                  <p>Bakım, izleme ve otomasyon tarafında kesintisiz teknik destek modeli.</p>
+                </article>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="scroll-features-section">
+          <video
+            className="scroll-features-video"
+            src="/scroll-features-smooth.mp4"
+            muted
+            playsInline
+            preload="auto"
+            aria-hidden="true"
+          />
+          <div className="container scroll-features-sticky">
+            <div className="feature-cards-grid">
+              <article className="feature-card is-active">
+                <span className="feature-icon">🌿</span>
+                <h3>Gelişmiş Havalandırma Çözümleri</h3>
+                <p>
+                  Gelişmiş havalandırma sistemleri ile özel olarak tasarlanmış
+                  yangın önleme çözümleri.
+                </p>
+                <button type="button">Daha fazla bilgi edin</button>
+              </article>
+              <article className="feature-card">
+                <span className="feature-icon">☀️</span>
+                <h3>Yenilikçi Klima Teknolojileri</h3>
+                <p>
+                  Optimum konfor ve verimlilik için sürdürülebilir iklim
+                  kontrolü.
+                </p>
+                <button type="button">Daha fazla bilgi edin</button>
+              </article>
+              <article className="feature-card">
+                <span className="feature-icon">🌀</span>
+                <h3>Sertifikalı Yangına Dayanıklılık - Jet Fan</h3>
+                <p>
+                  F400 sertifikalı yangına dayanıklı jet fanlarla güvenliği
+                  sağlıyoruz.
+                </p>
+                <button type="button">Daha fazla bilgi edin</button>
+              </article>
+              <article className="feature-card">
+                <span className="feature-icon">♻️</span>
+                <h3>Çevreye Duyarlı Üretim</h3>
+                <p>
+                  Yüksek etik standartların hem toplum hem de işletmeler için
+                  faydalı olduğuna inanıyoruz.
+                </p>
+                <button type="button">Daha fazla bilgi edin</button>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section className="section strategy strategy-modern">
+          <div className="container">
+            <div className="strategy-layout">
+              <div className="strategy-main">
+                <div className="section-top reveal">
+                  <p className="eyebrow">Our Strategy</p>
+                  <h2>3 katman, tek hedef: maksimum performans</h2>
+                </div>
+                <ol className="strategy-list">
+                  <li className="strategy-list-item reveal">
+                    <span className="strategy-list-marker" aria-hidden="true" />
+                    <div className="strategy-list-body">
+                      <p className="strategy-list-layer">Layer 01</p>
+                      <h3>Üretim ve Mühendislik</h3>
+                      <p>
+                        Air handling unit, jet fan ve endüstriyel fan çözümlerini
+                        yüksek kalite standartlarında üretiyoruz.
+                      </p>
+                    </div>
+                  </li>
+                  <li className="strategy-list-item reveal delay-1">
+                    <span className="strategy-list-marker" aria-hidden="true" />
+                    <div className="strategy-list-body">
+                      <p className="strategy-list-layer">Layer 02</p>
+                      <h3>Otomasyon ve Kontrol</h3>
+                      <p>
+                        Gerçek zamanlı izleme ve akıllı senaryolarla sistemlerin
+                        sahadaki verimliliğini artırıyoruz.
+                      </p>
+                    </div>
+                  </li>
+                  <li className="strategy-list-item reveal delay-2">
+                    <span className="strategy-list-marker" aria-hidden="true" />
+                    <div className="strategy-list-body">
+                      <p className="strategy-list-layer">Layer 03</p>
+                      <h3>Servis ve Süreklilik</h3>
+                      <p>
+                        Kısa ve uzun dönem bakım anlaşmalarıyla kesintisiz operasyon
+                        ve sürdürülebilir performans sağlıyoruz.
+                      </p>
+                    </div>
+                  </li>
+                </ol>
+              </div>
+              <div className="metrics-scroll-section metrics-scroll-inline strategy-metrics-aside">
+                <div className="metrics-scroll-sticky">
+                  <div className="metric-spot-grid metric-spot-grid--stack">
+                    <article className="metric-spot-card tone-1">
+                      <h3 className="metric-spot-number" data-target="10">
+                        0+
+                      </h3>
+                      <p>Yılların Uzmanlığı</p>
+                    </article>
+                    <article className="metric-spot-card tone-2">
+                      <h3 className="metric-spot-number" data-target="30">
+                        0+
+                      </h3>
+                      <p>Hizmet Verilen Ülkeler</p>
+                    </article>
+                    <article className="metric-spot-card tone-3">
+                      <h3 className="metric-spot-number" data-target="300" data-compact="K">
+                        0K+
+                      </h3>
+                      <p>Memnun Müşteriler</p>
+                    </article>
+                    <article className="metric-spot-card tone-4">
+                      <h3 className="metric-spot-number" data-target="0" data-plus="0">
+                        0
+                      </h3>
+                      <p>İş Kaybına Yol Açan Olaylar</p>
+                    </article>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="services" className="section services-section">
+          <div className="container">
+            <div className="section-top services-section-head reveal">
+              <p className="eyebrow">Services</p>
+              <h2>İleri seviye HVAC hizmetleri</h2>
+            </div>
+            <div className="cards services-grid">
+              <article className="card service-card reveal">
+                <div className="service-card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="6" width="18" height="12" rx="2" />
+                    <path d="M7 10h10M7 14h6M12 6v12" />
+                  </svg>
+                </div>
+                <div className="service-card-body">
+                  <h3>Air Handling Unit</h3>
+                  <p>
+                    Yüksek verimli hava işleme üniteleri ile güçlü taze hava ve
+                    ısı kontrolü.
+                  </p>
+                </div>
+              </article>
+              <article className="card service-card reveal delay-1">
+                <div className="service-card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round">
+                    <circle cx="12" cy="12" r="2.5" />
+                    <path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21" />
+                    <path d="M6.3 6.3l1.8 1.8M15.9 15.9l1.8 1.8M6.3 17.7l1.8-1.8M15.9 8.1l1.8-1.8" />
+                  </svg>
+                </div>
+                <div className="service-card-body">
+                  <h3>Jet Fan Automation</h3>
+                  <p>
+                    Otopark ve geniş hacimlerde duman tahliyesi için akıllı jet
+                    fan otomasyonu.
+                  </p>
+                </div>
+              </article>
+              <article className="card service-card reveal delay-2">
+                <div className="service-card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 3.5c-3.8 5.8-6.5 9.8-6.5 13.2a6.5 6.5 0 1013 0c0-3.4-2.7-7.4-6.5-13.2z" />
+                    <path d="M12 15v3" />
+                  </svg>
+                </div>
+                <div className="service-card-body">
+                  <h3>Pool Dehumidification</h3>
+                  <p>
+                    Havuz ortamları için nem dengesini optimize eden özel sistem
+                    çözümleri.
+                  </p>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section id="solutions" className="section gradient-block">
+          <div className="container">
+            <div className="section-top reveal">
+              <p className="eyebrow">Solutions</p>
+              <h2>Automation & CFD Analysis</h2>
+            </div>
+            <div className="timeline">
+              <article className="timeline-item reveal">
+                <span>01</span>
+                <div>
+                  <h3>İhtiyaç Analizi</h3>
+                  <p>
+                    Projenin mekanik, mimari ve güvenlik ihtiyaçları detaylı
+                    olarak değerlendirilir.
+                  </p>
+                </div>
+              </article>
+              <article className="timeline-item reveal delay-1">
+                <span>02</span>
+                <div>
+                  <h3>CFD Simülasyon</h3>
+                  <p>
+                    Hava akışı, sıcaklık ve duman davranışı senaryo bazlı analiz
+                    edilir.
+                  </p>
+                </div>
+              </article>
+              <article className="timeline-item reveal delay-2">
+                <span>03</span>
+                <div>
+                  <h3>Uygulama ve Devreye Alma</h3>
+                  <p>
+                    Sistemler kurulur, test edilir ve sahada sürdürülebilir
+                    performans için optimize edilir.
+                  </p>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section className="section message-block dark-block">
+          <div className="container quote reveal">
+            <p className="eyebrow">A Message From Our Team</p>
+            <h2>
+              "Sadece iklimlendirme değil, insan sağlığı ve iş sürekliliği için
+              güvenilir hava altyapısı inşa ediyoruz."
+            </h2>
+            <p className="quote-author">Fresh Air HVAC Team</p>
+          </div>
+        </section>
+
+        <section className="section faq-section">
+          <div className="container">
+            <div className="section-top reveal">
+              <p className="eyebrow">Sıkça Sorulan Sorular</p>
+              <h2>Merak edilen konulara hızlı yanıtlar</h2>
+            </div>
+            <div className="faq-layout">
+              <div className="faq-list">
+                <details className="faq-item" open>
+                  <summary>Hangi alanlar için HVAC çözümleri sunuyorsunuz?</summary>
+                  <p>
+                    Ofis, hastane, endüstriyel tesis, otopark, mutfak ve havuz
+                    alanları dahil farklı ölçeklerde projeler için çözüm sunuyoruz.
+                  </p>
+                </details>
+                <details className="faq-item">
+                  <summary>Projelerde keşif ve teklif süreci nasıl ilerliyor?</summary>
+                  <p>
+                    İhtiyaç analizi ve saha değerlendirmesi sonrası, projeye özel
+                    teknik kapsam ve maliyetlendirme ile detaylı teklif paylaşıyoruz.
+                  </p>
+                </details>
+                <details className="faq-item">
+                  <summary>Periyodik bakım ve servis hizmeti veriyor musunuz?</summary>
+                  <p>
+                    Evet. Kısa ve uzun dönem bakım anlaşmalarıyla sistemlerin
+                    verimli, güvenli ve kesintisiz çalışmasını sağlıyoruz.
+                  </p>
+                </details>
+                <details className="faq-item">
+                  <summary>CFD analiz ve otomasyon desteğiniz var mı?</summary>
+                  <p>
+                    Evet. Hava akışı, sıcaklık ve duman senaryoları için CFD analiz
+                    ve proje ihtiyaçlarına göre otomasyon entegrasyonu yapıyoruz.
+                  </p>
+                </details>
+              </div>
+              <aside className="faq-contact-box">
+                <p className="faq-contact-eyebrow">İletişim Al</p>
+                <h3>Projenize özel hızlı geri dönüş alın</h3>
+                <p>
+                  İhtiyacınızı bize iletin, uzman ekibimiz en uygun HVAC çözümü
+                  için kısa sürede sizinle iletişime geçsin.
+                </p>
+                <a href="#contact" className="btn btn-primary">
+                  Hemen İletişime Geç
+                </a>
+              </aside>
+            </div>
+          </div>
+        </section>
+
+        <section className="slogan-strip">
+          <div className="slogan-track">
+            <span>Akıllı Havalandırma Çözümleri</span>
+            <span>Enerji Verimliliği Odaklı Tasarım</span>
+            <span>Güvenli ve Sürdürülebilir İklimlendirme</span>
+            <span>Akıllı Havalandırma Çözümleri</span>
+            <span>Enerji Verimliliği Odaklı Tasarım</span>
+            <span>Güvenli ve Sürdürülebilir İklimlendirme</span>
+          </div>
+        </section>
+
+        <section className="section cta-section">
+          <div className="container cta-box reveal">
+            <p className="eyebrow">Hızlı Teklif</p>
+            <h2>Projeniz için en uygun HVAC çözümünü birlikte planlayalım</h2>
+            <p>
+              Teknik gereksinimlerinizi paylaşın, uzman ekibimiz kısa sürede
+              size özel kapsam ve teklif ile geri dönüş yapsın.
+            </p>
+            <div className="cta-actions">
+              <a href="#contact" className="btn btn-primary">
+                Teklif Al
+              </a>
+              <a href="#contact" className="btn btn-ghost">
+                Uzmanla Görüş
+              </a>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer id="contact" className="site-footer">
+        <div className="container footer-grid reveal">
+          <div className="footer-brand">
+            <img className="footer-logo" src="/footer-logo.png" alt="Fresh Air HVAC" />
+            <p>
+              Güvenilir, verimli ve sürdürülebilir HVAC çözümleriyle projelerinize
+              değer katıyoruz. Endüstriyel ve ticari uygulamalarda uzun ömürlü
+              iklimlendirme altyapıları sunuyoruz.
+            </p>
+            <div className="footer-socials">
+              <a href="#home" aria-label="Facebook">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M14 8h3V5h-3c-2.8 0-5 2.2-5 5v2H7v3h2v6h3v-6h3l1-3h-4v-2c0-1.1.9-2 2-2z" />
+                </svg>
+              </a>
+              <a href="#home" aria-label="Instagram">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm11.5 1.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
+                </svg>
+              </a>
+              <a href="#home" aria-label="LinkedIn">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6.5 8.5H3.5v12h3v-12zM5 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm4.5 5.5h2.9v1.7h.1c.4-.8 1.5-1.9 3.3-1.9 3.5 0 4.2 2.3 4.2 5.4v6.8h-3v-6c0-1.4 0-3.1-1.9-3.1s-2.2 1.5-2.2 3v6.1h-3v-12z" />
+                </svg>
+              </a>
+              <a href="#home" aria-label="YouTube">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M21.6 7.2a2.8 2.8 0 0 0-2-2C17.8 4.7 12 4.7 12 4.7s-5.8 0-7.6.5a2.8 2.8 0 0 0-2 2C2 9 2 12 2 12s0 3 .4 4.8a2.8 2.8 0 0 0 2 2c1.8.5 7.6.5 7.6.5s5.8 0 7.6-.5a2.8 2.8 0 0 0 2-2c.4-1.8.4-4.8.4-4.8s0-3-.4-4.8zM10 15.5v-7l6 3.5-6 3.5z" />
+                </svg>
+              </a>
+            </div>
+          </div>
+          <div className="footer-col">
+            <h4>Hizmetlerimiz</h4>
+            <a href="#services">Air Handling Unit</a>
+            <a href="#services">Jet Fan Automation</a>
+            <a href="#services">Pool Dehumidification</a>
+            <a href="#solutions">CFD Analysis</a>
+            <a href="#solutions">Otomasyon</a>
+          </div>
+          <div className="footer-col">
+            <h4>Kurumsal</h4>
+            <a href="#home">Anasayfa</a>
+            <a href="#about">Hakkımızda</a>
+            <a href="#services">Hizmetler</a>
+            <a href="#solutions">Çözümler</a>
+            <a href="#contact">İletişim</a>
+          </div>
+          <div className="footer-col footer-contact">
+            <h4>İletişim</h4>
+            <p><strong>Merkez Ofis:</strong> Orta Mah. Alpaslan Sok. No:8 D.77 Kartal / İstanbul</p>
+            <p><strong>Telefon:</strong> +90 (216) 766 44 27</p>
+            <p><strong>Mobil:</strong> +90 (554) 833 52 80</p>
+            <p><strong>E-posta:</strong> info@freshairhvac.com.tr</p>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <div className="container footer-bottom-row">
+            <p>© 2026 Fresh Air HVAC. Tüm hakları saklıdır.</p>
+            <div>
+              <a href="#home">Gizlilik Politikası</a>
+              <a href="#home">Şartlar ve Koşullar</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </>
+  );
+}
