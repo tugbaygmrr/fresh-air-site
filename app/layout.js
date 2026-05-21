@@ -1,4 +1,5 @@
 import { Montserrat } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -15,7 +16,28 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="tr">
-      <body className={montserrat.className}>{children}</body>
+      <head>
+        <link
+          rel="preload"
+          href="/models/hero-model-web.glb"
+          as="fetch"
+          type="model/gltf-binary"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="modulepreload"
+          href="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
+          crossOrigin="anonymous"
+        />
+      </head>
+      <body className={montserrat.className}>
+        <Script
+          type="module"
+          src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
+          strategy="beforeInteractive"
+        />
+        {children}
+      </body>
     </html>
   );
 }

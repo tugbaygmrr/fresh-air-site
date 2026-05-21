@@ -1009,22 +1009,22 @@ h1 span {
 
 .about-stat--tl {
   left: clamp(-12px, -1.5vw, -4px);
-  top: 7%;
+  top: 8%;
 }
 
 .about-stat--tr {
   right: clamp(-12px, -1.5vw, -4px);
-  top: 14%;
+  top: 8%;
 }
 
 .about-stat--bl {
   left: clamp(-12px, -1.5vw, -4px);
-  bottom: 11%;
+  bottom: 8%;
 }
 
 .about-stat--br {
   right: clamp(-12px, -1.5vw, -4px);
-  bottom: 7%;
+  bottom: 8%;
 }
 
 .about-media-btn {

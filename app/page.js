@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import Script from "next/script";
 
 export default function HomePage() {
   useEffect(() => {
@@ -341,11 +340,6 @@ export default function HomePage() {
 
   return (
     <>
-      <Script
-        type="module"
-        src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
-        strategy="afterInteractive"
-      />
       <header className="site-header glass">
         <div className="container nav">
           <a className="brand" href="#home" aria-label="AeroSystem">
@@ -509,7 +503,7 @@ export default function HomePage() {
             <div className="about-media">
               <model-viewer
                 className="about-model-viewer"
-                src="/models/Meshy_AI_Blue_Spiral_Blossom_0508114958_texture.glb"
+                src="/models/hero-model-web.glb"
                 camera-controls
                 touch-action="pan-y"
                 auto-rotate
@@ -519,6 +513,9 @@ export default function HomePage() {
                 environment-image="neutral"
                 exposure="1"
                 interaction-prompt="none"
+                loading="eager"
+                reveal="auto"
+                suppressHydrationWarning
                 style={{ width: "100%", height: "100%", background: "transparent" }}
               />
               <div className="about-stat-grid">

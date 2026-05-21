@@ -40,3 +40,7 @@ yarn-error.log*
 .idea/
 *.swp
 *.swo
+
+# Heavy source GLBs (exceed GitHub 100MB limit; web-optimized versions ship instead)
+/Meshy_AI_Ultra_realistic_3D_in_*.glb
+/public/models/Meshy_AI_Ultra_realistic_3D_in_*.glb
