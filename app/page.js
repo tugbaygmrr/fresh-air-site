@@ -74,6 +74,7 @@ export default function HomePage() {
 
     const formatNumber = (value, compact, withPlus) => {
       const rounded = Math.round(value);
+      if (compact === "M") return `${rounded}M${withPlus ? "+" : ""}`;
       if (compact === "K") return `${rounded}K${withPlus ? "+" : ""}`;
       return `${rounded}${withPlus ? "+" : ""}`;
     };
@@ -124,7 +125,7 @@ export default function HomePage() {
 
     const ctx = canvas.getContext("2d");
     const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
-    const LERP = 0.1;
+    const LERP = 0.22;
 
     const frames = [];
     let lastIdx = -1;
@@ -347,38 +348,27 @@ export default function HomePage() {
       />
       <header className="site-header glass">
         <div className="container nav">
-          <a className="brand" href="#home">
+          <a className="brand" href="#home" aria-label="AeroSystem">
             <img
               className="brand-logo"
-              src="/footer-logo.png"
-              alt="Fresh Air HVAC"
+              src="/aero-logo.png"
+              alt="AeroSystem"
             />
           </a>
           <span className="nav-divider" aria-hidden="true" />
           <nav className="menu">
             <button className="is-active" type="button">
-              Ana Sayfa
+              Anasayfa
             </button>
-            <button type="button">Hakkında</button>
-            <button type="button">Sertifikalar</button>
+            <button type="button">Hakkımızda</button>
             <button type="button">
-              Ürünler
+              Ürünlerimiz
               <span className="caret" aria-hidden="true">
                 ▾
               </span>
             </button>
-            <button type="button">
-              Hizmetler
-              <span className="caret" aria-hidden="true">
-                ▾
-              </span>
-            </button>
-            <button type="button">
-              Çözümler
-              <span className="caret" aria-hidden="true">
-                ▾
-              </span>
-            </button>
+            <button type="button">Belgelerimiz</button>
+            <button type="button">Katalog</button>
             <button type="button">İletişim</button>
           </nav>
           <div className="nav-actions">
@@ -431,21 +421,28 @@ export default function HomePage() {
           <div className="hero-visual-overlay" />
           <div className="container hero-grid">
             <aside className="hero-info-card">
-              <p className="hero-info-eyebrow">• PROFESYONEL HAVALANDIRMA ÇÖZÜMLERİ</p>
+              <p className="hero-info-eyebrow">• HAVALANDIRMA VE İKLİMLENDİRME SİSTEMLERİ</p>
               <h3>
-                Dünya <span className="hero-grad-title">Fresh Air HVAC&apos;ye</span> ihtiyaç duyuyor
-                - biz de <span className="hero-grad-title">size ihtiyaç duyuyoruz</span>.
+                <span className="hero-grad-title">1 milyon m²</span>{" "}
+                proje deneyimiyle, iç mekanlarda{" "}
+                <span className="hero-grad-title">sağlıklı hava</span>{" "}
+                ve{" "}
+                <span className="hero-grad-title">ısı konforu</span>{" "}
+                üretiyoruz.
               </h3>
               <p>
-                Isıtma, havalandırma ve iklimlendirme <span className="hero-grad-text">(HVAC)</span>{" "}
-                çözümlerinde önde gelen bir firma olarak, geleceği bizimle birlikte{" "}
-                <span className="hero-grad-text">şekillendirmeye hazır</span>, kararlı bireylere
-                güveniyoruz. Siz de <span className="hero-grad-text">fark yaratmaya</span> hazır
-                mısınız?
+                İklimlendirme, havalandırma,{" "}
+                <span className="hero-grad-text">klima santralleri</span>{" "}
+                ve{" "}
+                <span className="hero-grad-text">soğutma ekipmanları</span>{" "}
+                alanında uçtan uca mühendislik ve üretim hizmetiyle, otel,
+                hastane, AVM ve endüstriyel tesislerde{" "}
+                <span className="hero-grad-text">güvenilir altyapı</span>{" "}
+                kuruyoruz.
               </p>
               <div className="hero-info-actions">
                 <button type="button">PROJENİZ İÇİN TEKLİF ALIN →</button>
-                <a href="#services">ÜRÜNLERİ KEŞFET →</a>
+                <a href="#services">ÜRÜNLERİMİZİ KEŞFEDİN →</a>
               </div>
             </aside>
           </div>
@@ -455,34 +452,34 @@ export default function HomePage() {
           <div className="container ticker-content reveal">
             <div className="trust-panel">
               <div className="trust-copy">
-                <p className="mini-eyebrow">Güvenilen Üretici</p>
+                <p className="mini-eyebrow">Sertifikalı Üretici</p>
                 <h2>
-                  Dünya çapındaki vizyon sahibi inşaat ve mühendislik ekipleri,
-                  HVAC çözümleri için bu üreticiyi tercih ediyor<span>.</span>
+                  ISO, CE ve TSE sertifikalarıyla belgelenmiş kalite,
+                  güvenlik ve çevre standartları<span>.</span>
                 </h2>
               </div>
-              <div className="trust-logos" aria-label="İş ortakları">
-                <div className="trust-logo">
-                  <img src="/trust-logos/abb.svg" alt="ABB" width={140} height={56} loading="lazy" decoding="async" />
-                </div>
-                <div className="trust-logo">
-                  <img src="/trust-logos/honeywell.svg" alt="Honeywell" width={160} height={40} loading="lazy" decoding="async" />
-                </div>
-                <div className="trust-logo">
-                  <img src="/trust-logos/danfoss.svg" alt="Danfoss" width={160} height={48} loading="lazy" decoding="async" />
+              <div className="trust-logos" aria-label="Sertifikalarımız">
+                <div className="trust-logo trust-logo--light">
+                  <img src="/cert-logos/iso-9001.png" alt="ISO 9001" loading="lazy" decoding="async" />
                 </div>
                 <div className="trust-logo trust-logo--light">
-                  <img src="/trust-logos/belimo.svg" alt="Belimo" width={140} height={44} loading="lazy" decoding="async" />
+                  <img src="/cert-logos/ce-f400.png" alt="CE F400" loading="lazy" decoding="async" />
+                </div>
+                <div className="trust-logo trust-logo--light">
+                  <img src="/cert-logos/tse-hyb.png" alt="TSE HYB" loading="lazy" decoding="async" />
+                </div>
+                <div className="trust-logo trust-logo--light">
+                  <img src="/cert-icons/iso-english.svg" alt="ISO Certified" loading="lazy" decoding="async" />
                 </div>
               </div>
             </div>
             <div className="ticker-row">
-              <p>HVAC Manufacturing</p>
-              <p>Fire Safety Ventilation</p>
-              <p>Jet Fan Systems</p>
-              <p>CFD Analysis</p>
-              <p>Pool Dehumidification</p>
-              <p>Smart Automation</p>
+              <p>İklimlendirme</p>
+              <p>Klima Santralleri</p>
+              <p>Havalandırma</p>
+              <p>Soğutma Ekipmanları</p>
+              <p>Endüstriyel Fanlar</p>
+              <p>HVAC Üretimi</p>
             </div>
           </div>
         </section>
@@ -492,19 +489,18 @@ export default function HomePage() {
             <div className="about-left">
               <p className="about-eyebrow">Kurumsal</p>
               <div className="about-item is-active">
-                <h3>Gelişmiş HVAC Sistemleriyle Yönetim Kolaylığı</h3>
+                <h3>1 Milyon m² Proje Deneyimi</h3>
                 <p>
-                  Isıtma, havalandırma ve klima (HVAC) sistemlerimiz, kullanıcı
-                  dostu kontrolü akıllı teknolojiyle birleştirerek sorunsuz bir
-                  yönetim sağlar. Gerçek zamanlı izleme ve ayarlamalara olanak
-                  tanıyarak verimliliği ve konforu artırır. Modern mekanlar için
-                  ideal olan bu sistemler, iklim kontrolünü basitleştirerek
-                  rahatlığı gelişmiş işlevsellikle birleştirir.
+                  İklimlendirme alanında uçtan uca üretim, mühendislik ve servis
+                  hizmeti veriyoruz. Klima santralleri, fan sistemleri ve soğutma
+                  ekipmanlarımızla iç mekanlarda ısı konforu sağlıyor; otel,
+                  hastane, AVM ve endüstriyel tesislerde sağlıklı, taze ve temiz
+                  hava akışını güvence altına alıyoruz.
                 </p>
               </div>
               <p className="about-intro">
-                Ev ve iş yerleriniz için en üst düzey konforu sağlamak amacıyla en
-                kaliteli HVAC hizmetlerini sunuyoruz.
+                Yurt içi ve yurt dışı projelerimizde edindiğimiz tecrübeyi,
+                projeye özel çözümlere dönüştürüyoruz.
               </p>
               <a href="#services" className="about-link">
                 Daha fazla bilgi edin
@@ -527,20 +523,20 @@ export default function HomePage() {
               />
               <div className="about-stat-grid">
                 <article className="about-stat about-stat--tl">
-                  <h4>Yüksek Verim</h4>
-                  <p>F400 sertifikalı fan sistemleriyle güvenli ve stabil performans.</p>
+                  <h4>1.000.000 m²</h4>
+                  <p>Tamamlanan iklimlendirme ve havalandırma proje alanı.</p>
                 </article>
                 <article className="about-stat about-stat--tr">
-                  <h4>30+ Ülke</h4>
-                  <p>Fresh Air HVAC çözümleri farklı iklim ve proje tiplerinde aktif.</p>
+                  <h4>5 Ülke</h4>
+                  <p>Azerbaycan, Irak, Kosova, Arnavutluk ve Tacikistan'da aktif projeler.</p>
                 </article>
                 <article className="about-stat about-stat--bl">
-                  <h4>50K+ Proje</h4>
-                  <p>Endüstriyel ve ticari sahalarda uygulanan güçlü mühendislik altyapısı.</p>
+                  <h4>Çoklu Sektör</h4>
+                  <p>Otel, hastane, AVM ve endüstriyel tesislerde uygulanan çözümler.</p>
                 </article>
                 <article className="about-stat about-stat--br">
-                  <h4>7/24 Destek</h4>
-                  <p>Bakım, izleme ve otomasyon tarafında kesintisiz teknik destek modeli.</p>
+                  <h4>Uçtan Uca</h4>
+                  <p>Üretim, mühendislik, montaj ve servis süreçlerini tek elden yürütüyoruz.</p>
                 </article>
               </div>
             </div>
@@ -559,38 +555,38 @@ export default function HomePage() {
           <div className="container scroll-features-sticky">
             <div className="feature-cards-grid">
               <article className="feature-card is-active">
-                <span className="feature-icon">🌿</span>
-                <h3>Gelişmiş Havalandırma Çözümleri</h3>
+                <span className="feature-icon">❄️</span>
+                <h3>İklimlendirme Sistemleri</h3>
                 <p>
-                  Gelişmiş havalandırma sistemleri ile özel olarak tasarlanmış
-                  yangın önleme çözümleri.
+                  İç mekanlarda soğutma, ısıtma, havalandırma ve dezenfeksiyonu
+                  kapsayan kapsamlı HVAC çözümleri.
                 </p>
                 <button type="button">Daha fazla bilgi edin</button>
               </article>
               <article className="feature-card">
-                <span className="feature-icon">☀️</span>
-                <h3>Yenilikçi Klima Teknolojileri</h3>
+                <span className="feature-icon">🌬️</span>
+                <h3>Havalandırma ve Fanlar</h3>
                 <p>
-                  Optimum konfor ve verimlilik için sürdürülebilir iklim
-                  kontrolü.
+                  Hava akışı oluşturmak için tasarlanmış endüstriyel fanlarla
+                  güçlü ve sürekli havalandırma performansı.
                 </p>
                 <button type="button">Daha fazla bilgi edin</button>
               </article>
               <article className="feature-card">
-                <span className="feature-icon">🌀</span>
-                <h3>Sertifikalı Yangına Dayanıklılık - Jet Fan</h3>
+                <span className="feature-icon">🏭</span>
+                <h3>Klima Santralleri</h3>
                 <p>
-                  F400 sertifikalı yangına dayanıklı jet fanlarla güvenliği
-                  sağlıyoruz.
+                  Sıcaklık kontrolü yaparak ortam havasını ısıtan, soğutan ve
+                  taze hava sağlayan klima santral üniteleri.
                 </p>
                 <button type="button">Daha fazla bilgi edin</button>
               </article>
               <article className="feature-card">
-                <span className="feature-icon">♻️</span>
-                <h3>Çevreye Duyarlı Üretim</h3>
+                <span className="feature-icon">🧊</span>
+                <h3>Soğutma Ekipmanları</h3>
                 <p>
-                  Yüksek etik standartların hem toplum hem de işletmeler için
-                  faydalı olduğuna inanıyoruz.
+                  Endüstriyel ve ticari mekanlar için yüksek verimli soğutma
+                  ekipmanları ve özel sistem çözümleri.
                 </p>
                 <button type="button">Daha fazla bilgi edin</button>
               </article>
@@ -603,40 +599,40 @@ export default function HomePage() {
             <div className="strategy-layout">
               <div className="strategy-main">
                 <div className="section-top reveal">
-                  <p className="eyebrow">Our Strategy</p>
-                  <h2>3 katman, tek hedef: maksimum performans</h2>
+                  <p className="eyebrow">Çalışma Yaklaşımımız</p>
+                  <h2>3 adımda iklimlendirme projeleri: tasarımdan teslime</h2>
                 </div>
                 <ol className="strategy-list">
                   <li className="strategy-list-item reveal">
                     <span className="strategy-list-marker" aria-hidden="true" />
                     <div className="strategy-list-body">
-                      <p className="strategy-list-layer">Layer 01</p>
-                      <h3>Üretim ve Mühendislik</h3>
+                      <p className="strategy-list-layer">Aşama 01</p>
+                      <h3>Mühendislik ve Üretim</h3>
                       <p>
-                        Air handling unit, jet fan ve endüstriyel fan çözümlerini
-                        yüksek kalite standartlarında üretiyoruz.
+                        Klima santrali, havalandırma fanı ve soğutma ekipmanlarını
+                        proje özelinde tasarlayıp kendi tesisimizde üretiyoruz.
                       </p>
                     </div>
                   </li>
                   <li className="strategy-list-item reveal delay-1">
                     <span className="strategy-list-marker" aria-hidden="true" />
                     <div className="strategy-list-body">
-                      <p className="strategy-list-layer">Layer 02</p>
-                      <h3>Otomasyon ve Kontrol</h3>
+                      <p className="strategy-list-layer">Aşama 02</p>
+                      <h3>Montaj ve Devreye Alma</h3>
                       <p>
-                        Gerçek zamanlı izleme ve akıllı senaryolarla sistemlerin
-                        sahadaki verimliliğini artırıyoruz.
+                        Otel, hastane, AVM ve endüstriyel tesislerde sistemleri
+                        kurar, test eder ve performans hedeflerine göre ayarlarız.
                       </p>
                     </div>
                   </li>
                   <li className="strategy-list-item reveal delay-2">
                     <span className="strategy-list-marker" aria-hidden="true" />
                     <div className="strategy-list-body">
-                      <p className="strategy-list-layer">Layer 03</p>
-                      <h3>Servis ve Süreklilik</h3>
+                      <p className="strategy-list-layer">Aşama 03</p>
+                      <h3>Servis ve Bakım</h3>
                       <p>
-                        Kısa ve uzun dönem bakım anlaşmalarıyla kesintisiz operasyon
-                        ve sürdürülebilir performans sağlıyoruz.
+                        Yurt içi ve yurt dışı projelerimizde uzun ömürlü
+                        operasyon için periyodik bakım ve teknik destek sunuyoruz.
                       </p>
                     </div>
                   </li>
@@ -646,28 +642,28 @@ export default function HomePage() {
                 <div className="metrics-scroll-sticky">
                   <div className="metric-spot-grid metric-spot-grid--stack">
                     <article className="metric-spot-card tone-1">
-                      <h3 className="metric-spot-number" data-target="10">
-                        0+
+                      <h3 className="metric-spot-number" data-target="1" data-compact="M">
+                        0M+
                       </h3>
-                      <p>Yılların Uzmanlığı</p>
+                      <p>m² Tamamlanan Proje Alanı</p>
                     </article>
                     <article className="metric-spot-card tone-2">
-                      <h3 className="metric-spot-number" data-target="30">
+                      <h3 className="metric-spot-number" data-target="5">
                         0+
                       </h3>
-                      <p>Hizmet Verilen Ülkeler</p>
+                      <p>Aktif Ülke (Yurt Dışı)</p>
                     </article>
                     <article className="metric-spot-card tone-3">
-                      <h3 className="metric-spot-number" data-target="300" data-compact="K">
-                        0K+
+                      <h3 className="metric-spot-number" data-target="4">
+                        0+
                       </h3>
-                      <p>Memnun Müşteriler</p>
+                      <p>Ürün Kategorisi</p>
                     </article>
                     <article className="metric-spot-card tone-4">
-                      <h3 className="metric-spot-number" data-target="0" data-plus="0">
+                      <h3 className="metric-spot-number" data-target="100" data-plus="0">
                         0
                       </h3>
-                      <p>İş Kaybına Yol Açan Olaylar</p>
+                      <p>% Yerli Üretim</p>
                     </article>
                   </div>
                 </div>
@@ -679,8 +675,8 @@ export default function HomePage() {
         <section id="services" className="section services-section">
           <div className="container">
             <div className="section-top services-section-head reveal">
-              <p className="eyebrow">Services</p>
-              <h2>İleri seviye HVAC hizmetleri</h2>
+              <p className="eyebrow">Ürünlerimiz</p>
+              <h2>İklimlendirme ve havalandırma ürün ailesi</h2>
             </div>
             <div className="cards services-grid">
               <article className="card service-card reveal">
@@ -691,10 +687,10 @@ export default function HomePage() {
                   </svg>
                 </div>
                 <div className="service-card-body">
-                  <h3>Air Handling Unit</h3>
+                  <h3>Klima Santralleri</h3>
                   <p>
-                    Yüksek verimli hava işleme üniteleri ile güçlü taze hava ve
-                    ısı kontrolü.
+                    İç ortamın sıcaklığını kontrol ederek havayı ısıtan, soğutan
+                    ve taze hava ihtiyacını karşılayan üniteler.
                   </p>
                 </div>
               </article>
@@ -707,10 +703,10 @@ export default function HomePage() {
                   </svg>
                 </div>
                 <div className="service-card-body">
-                  <h3>Jet Fan Automation</h3>
+                  <h3>Havalandırma Fanları</h3>
                   <p>
-                    Otopark ve geniş hacimlerde duman tahliyesi için akıllı jet
-                    fan otomasyonu.
+                    Geniş hacimlerde hava akışı oluşturan endüstriyel ve ticari
+                    fan çözümleri.
                   </p>
                 </div>
               </article>
@@ -722,10 +718,10 @@ export default function HomePage() {
                   </svg>
                 </div>
                 <div className="service-card-body">
-                  <h3>Pool Dehumidification</h3>
+                  <h3>Soğutma Ekipmanları</h3>
                   <p>
-                    Havuz ortamları için nem dengesini optimize eden özel sistem
-                    çözümleri.
+                    Endüstriyel ve ticari tesisler için yüksek verimli soğutma
+                    sistemleri ve özel ekipmanlar.
                   </p>
                 </div>
               </article>
@@ -736,37 +732,37 @@ export default function HomePage() {
         <section id="solutions" className="section gradient-block">
           <div className="container">
             <div className="section-top reveal">
-              <p className="eyebrow">Solutions</p>
-              <h2>Automation & CFD Analysis</h2>
+              <p className="eyebrow">Referans Sektörler</p>
+              <h2>Otel, Hastane, AVM ve Endüstri</h2>
             </div>
             <div className="timeline">
               <article className="timeline-item reveal">
                 <span>01</span>
                 <div>
-                  <h3>İhtiyaç Analizi</h3>
+                  <h3>Otel ve Konaklama</h3>
                   <p>
-                    Projenin mekanik, mimari ve güvenlik ihtiyaçları detaylı
-                    olarak değerlendirilir.
+                    Misafir konforu için sessiz ve verimli klima santral ve
+                    havalandırma çözümleri.
                   </p>
                 </div>
               </article>
               <article className="timeline-item reveal delay-1">
                 <span>02</span>
                 <div>
-                  <h3>CFD Simülasyon</h3>
+                  <h3>Hastane ve Sağlık</h3>
                   <p>
-                    Hava akışı, sıcaklık ve duman davranışı senaryo bazlı analiz
-                    edilir.
+                    Hijyen standartlarına uygun, filtreli ve dezenfeksiyon
+                    destekli iklimlendirme sistemleri.
                   </p>
                 </div>
               </article>
               <article className="timeline-item reveal delay-2">
                 <span>03</span>
                 <div>
-                  <h3>Uygulama ve Devreye Alma</h3>
+                  <h3>AVM ve Endüstri</h3>
                   <p>
-                    Sistemler kurulur, test edilir ve sahada sürdürülebilir
-                    performans için optimize edilir.
+                    Yüksek kapasiteli alanlarda kararlı ısı konforu ve
+                    sürdürülebilir hava akışı.
                   </p>
                 </div>
               </article>
@@ -776,12 +772,13 @@ export default function HomePage() {
 
         <section className="section message-block dark-block">
           <div className="container quote reveal">
-            <p className="eyebrow">A Message From Our Team</p>
+            <p className="eyebrow">Ekibimizden</p>
             <h2>
-              "Sadece iklimlendirme değil, insan sağlığı ve iş sürekliliği için
-              güvenilir hava altyapısı inşa ediyoruz."
+              "İklimlendirme alanında 1 milyon m²'yi aşan proje deneyimimizle,
+              her projeye sağlıklı hava ve uzun ömürlü performans taahhüt
+              ediyoruz."
             </h2>
-            <p className="quote-author">Fresh Air HVAC Team</p>
+            <p className="quote-author">AeroSystem Ekibi</p>
           </div>
         </section>
 
@@ -794,31 +791,32 @@ export default function HomePage() {
             <div className="faq-layout">
               <div className="faq-list">
                 <details className="faq-item" open>
-                  <summary>Hangi alanlar için HVAC çözümleri sunuyorsunuz?</summary>
+                  <summary>Hangi ürünleri üretiyorsunuz?</summary>
                   <p>
-                    Ofis, hastane, endüstriyel tesis, otopark, mutfak ve havuz
-                    alanları dahil farklı ölçeklerde projeler için çözüm sunuyoruz.
+                    Klima santralleri, havalandırma fanları, soğutma ekipmanları
+                    ve iklimlendirme sistemlerini tek çatı altında üretip
+                    sahaya teslim ediyoruz.
                   </p>
                 </details>
                 <details className="faq-item">
-                  <summary>Projelerde keşif ve teklif süreci nasıl ilerliyor?</summary>
+                  <summary>Yurt dışında hangi ülkelerde projeniz var?</summary>
                   <p>
-                    İhtiyaç analizi ve saha değerlendirmesi sonrası, projeye özel
-                    teknik kapsam ve maliyetlendirme ile detaylı teklif paylaşıyoruz.
+                    Azerbaycan, Irak, Kosova, Arnavutluk ve Tacikistan'da otel,
+                    hastane ve endüstriyel tesis projelerinde aktif olarak çalıştık.
                   </p>
                 </details>
                 <details className="faq-item">
-                  <summary>Periyodik bakım ve servis hizmeti veriyor musunuz?</summary>
+                  <summary>Hangi sektörlere hizmet veriyorsunuz?</summary>
                   <p>
-                    Evet. Kısa ve uzun dönem bakım anlaşmalarıyla sistemlerin
-                    verimli, güvenli ve kesintisiz çalışmasını sağlıyoruz.
+                    Otel, hastane, alışveriş merkezi ve endüstriyel tesisler
+                    başta olmak üzere geniş bir referans portföyümüz bulunmaktadır.
                   </p>
                 </details>
                 <details className="faq-item">
-                  <summary>CFD analiz ve otomasyon desteğiniz var mı?</summary>
+                  <summary>Bakım ve servis hizmeti veriyor musunuz?</summary>
                   <p>
-                    Evet. Hava akışı, sıcaklık ve duman senaryoları için CFD analiz
-                    ve proje ihtiyaçlarına göre otomasyon entegrasyonu yapıyoruz.
+                    Evet. Ürettiğimiz tüm iklimlendirme ve havalandırma sistemleri
+                    için kısa ve uzun dönem bakım anlaşmaları sunuyoruz.
                   </p>
                 </details>
               </div>
@@ -839,29 +837,30 @@ export default function HomePage() {
 
         <section className="slogan-strip">
           <div className="slogan-track">
-            <span>Akıllı Havalandırma Çözümleri</span>
-            <span>Enerji Verimliliği Odaklı Tasarım</span>
-            <span>Güvenli ve Sürdürülebilir İklimlendirme</span>
-            <span>Akıllı Havalandırma Çözümleri</span>
-            <span>Enerji Verimliliği Odaklı Tasarım</span>
-            <span>Güvenli ve Sürdürülebilir İklimlendirme</span>
+            <span>İklimlendirme ve Havalandırma Sistemleri</span>
+            <span>1.000.000 m² Proje Deneyimi</span>
+            <span>5 Ülkede Aktif Çözüm Ortağı</span>
+            <span>İklimlendirme ve Havalandırma Sistemleri</span>
+            <span>1.000.000 m² Proje Deneyimi</span>
+            <span>5 Ülkede Aktif Çözüm Ortağı</span>
           </div>
         </section>
 
         <section className="section cta-section">
           <div className="container cta-box reveal">
             <p className="eyebrow">Hızlı Teklif</p>
-            <h2>Projeniz için en uygun HVAC çözümünü birlikte planlayalım</h2>
+            <h2>Projenize özel iklimlendirme çözümünü birlikte planlayalım</h2>
             <p>
-              Teknik gereksinimlerinizi paylaşın, uzman ekibimiz kısa sürede
-              size özel kapsam ve teklif ile geri dönüş yapsın.
+              Klima santrali, havalandırma fanı veya soğutma ekipmanı
+              ihtiyacınızı paylaşın; mühendislik ekibimiz proje özelinde kısa
+              sürede teklif sunsun.
             </p>
             <div className="cta-actions">
               <a href="#contact" className="btn btn-primary">
                 Teklif Al
               </a>
               <a href="#contact" className="btn btn-ghost">
-                Uzmanla Görüş
+                Katalog İste
               </a>
             </div>
           </div>
@@ -871,11 +870,12 @@ export default function HomePage() {
       <footer id="contact" className="site-footer">
         <div className="container footer-grid reveal">
           <div className="footer-brand">
-            <img className="footer-logo" src="/footer-logo.png" alt="Fresh Air HVAC" />
+            <img className="footer-logo" src="/aero-logo.png" alt="AeroSystem" />
             <p>
-              Güvenilir, verimli ve sürdürülebilir HVAC çözümleriyle projelerinize
-              değer katıyoruz. Endüstriyel ve ticari uygulamalarda uzun ömürlü
-              iklimlendirme altyapıları sunuyoruz.
+              Havalandırma ve iklimlendirme sistemleri alanında üretim,
+              mühendislik ve montaj hizmeti sunan AeroSystem; 1 milyon m²
+              proje deneyimiyle yurt içi ve yurt dışında çözüm üretmeye
+              devam ediyor.
             </p>
             <div className="footer-socials">
               <a href="#home" aria-label="Facebook">
@@ -901,32 +901,32 @@ export default function HomePage() {
             </div>
           </div>
           <div className="footer-col">
-            <h4>Hizmetlerimiz</h4>
-            <a href="#services">Air Handling Unit</a>
-            <a href="#services">Jet Fan Automation</a>
-            <a href="#services">Pool Dehumidification</a>
-            <a href="#solutions">CFD Analysis</a>
-            <a href="#solutions">Otomasyon</a>
+            <h4>Ürünlerimiz</h4>
+            <a href="#services">İklimlendirme</a>
+            <a href="#services">Klima Santralleri</a>
+            <a href="#services">Havalandırma Fanları</a>
+            <a href="#services">Soğutma Ekipmanları</a>
+            <a href="#solutions">Referans Sektörler</a>
           </div>
           <div className="footer-col">
             <h4>Kurumsal</h4>
             <a href="#home">Anasayfa</a>
             <a href="#about">Hakkımızda</a>
-            <a href="#services">Hizmetler</a>
-            <a href="#solutions">Çözümler</a>
+            <a href="#services">Ürünlerimiz</a>
+            <a href="#home">Belgelerimiz</a>
+            <a href="#home">Katalog</a>
             <a href="#contact">İletişim</a>
           </div>
           <div className="footer-col footer-contact">
             <h4>İletişim</h4>
-            <p><strong>Merkez Ofis:</strong> Orta Mah. Alpaslan Sok. No:8 D.77 Kartal / İstanbul</p>
-            <p><strong>Telefon:</strong> +90 (216) 766 44 27</p>
-            <p><strong>Mobil:</strong> +90 (554) 833 52 80</p>
-            <p><strong>E-posta:</strong> info@freshairhvac.com.tr</p>
+            <p><strong>Adres:</strong> Ramazanoğlu Mah. Sanayi Cad. Kurtköy Sanayi Sitesi No:44/B Blok No:75 Pendik / İstanbul</p>
+            <p><strong>Telefon:</strong> +90 (530) 241 23 76</p>
+            <p><strong>E-posta:</strong> info@aerosystem.com.tr</p>
           </div>
         </div>
         <div className="footer-bottom">
           <div className="container footer-bottom-row">
-            <p>© 2026 Fresh Air HVAC. Tüm hakları saklıdır.</p>
+            <p>© 2026 AeroSystem — Havalandırma ve İklimlendirme Sistemleri. Tüm hakları saklıdır.</p>
             <div>
               <a href="#home">Gizlilik Politikası</a>
               <a href="#home">Şartlar ve Koşullar</a>

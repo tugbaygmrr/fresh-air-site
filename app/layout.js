@@ -7,8 +7,9 @@ const montserrat = Montserrat({
 });
 
 export const metadata = {
-  title: "Fresh Air HVAC | Modern Homepage",
-  description: "Fresh Air HVAC için modern, animasyon destekli ana sayfa taslağı.",
+  title: "AeroSystem | Havalandırma ve İklimlendirme Sistemleri",
+  description:
+    "Klima santralleri, havalandırma fanları, soğutma ekipmanları ve iklimlendirme sistemleri üretimi. 1 milyon m² proje deneyimiyle AeroSystem.",
 };
 
 export default function RootLayout({ children }) {
