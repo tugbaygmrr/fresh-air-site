@@ -42,28 +42,42 @@ export default function HomePage() {
     const cards = Array.from(section.querySelectorAll(".metric-spot-card"));
     const total = cards.length;
 
+    let lastActive = -1;
+    let lastProgressStr = "";
+    let rafId = 0;
+
     const updateMetricsCards = () => {
+      rafId = 0;
       const rect = section.getBoundingClientRect();
       const viewport = window.innerHeight || 1;
       const start = viewport * 0.18;
       const end = viewport * 0.75;
       const progressRaw = (start - rect.top) / (rect.height - end);
       const progress = Math.min(1, Math.max(0, progressRaw));
-      section.style.setProperty("--metrics-progress", String(progress));
+      const progressStr = progress.toFixed(3);
+      if (progressStr !== lastProgressStr) {
+        lastProgressStr = progressStr;
+        section.style.setProperty("--metrics-progress", progressStr);
+      }
       const active = Math.min(total - 1, Math.floor(progress * total) - 1);
-
-      cards.forEach((card, idx) => {
-        card.classList.toggle("is-active", idx <= active);
-      });
+      if (active !== lastActive) {
+        lastActive = active;
+        cards.forEach((card, idx) => {
+          card.classList.toggle("is-active", idx <= active);
+        });
+      }
     };
 
-    updateMetricsCards();
-    window.addEventListener("scroll", updateMetricsCards, { passive: true });
-    window.addEventListener("resize", updateMetricsCards);
+    const schedule = () => { if (!rafId) rafId = requestAnimationFrame(updateMetricsCards); };
+
+    schedule();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
 
     return () => {
-      window.removeEventListener("scroll", updateMetricsCards);
-      window.removeEventListener("resize", updateMetricsCards);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      if (rafId) cancelAnimationFrame(rafId);
     };
   }, []);
 
@@ -187,7 +201,13 @@ export default function HomePage() {
     window.addEventListener("resize", onResize);
     syncSize();
 
-    // Kareleri arka planda çek — scroll sırasında seek yok, sadece canvas draw
+    // Kareleri arka planda, idle zamanda çek — scroll'u bloklamasın
+    let cancelled = false;
+    const idle = (cb) =>
+      typeof window.requestIdleCallback === "function"
+        ? window.requestIdleCallback(cb, { timeout: 400 })
+        : setTimeout(cb, 1);
+
     (async () => {
       try {
         const vid = document.createElement("video");
@@ -200,14 +220,21 @@ export default function HomePage() {
           vid.addEventListener("error", rej, { once: true });
           vid.load();
         });
+        if (cancelled) return;
         const dur = vid.duration;
-        const n = Math.min(Math.ceil(dur * 10), 60); // 10fps, max 60 kare
+        // Ağır videolarda kare sayısını düşür (max 40, ~8fps)
+        const n = Math.min(Math.ceil(dur * 8), 40);
         for (let i = 0; i < n; i++) {
+          if (cancelled) return;
           vid.currentTime = (i / Math.max(n - 1, 1)) * dur;
           await new Promise((r) => vid.addEventListener("seeked", r, { once: true }));
-          frames.push(await createImageBitmap(vid));
+          if (cancelled) return;
+          const bm = await createImageBitmap(vid);
+          frames.push(bm);
           if (i === 0) { syncSize(); drawFrame(0); }
           else scheduleSync();
+          // Sıradaki kareyi tarayıcı boşa çıkana kadar bekle
+          await new Promise((r) => idle(r));
         }
       } catch (err) {
         console.warn("Frame extraction failed:", err);
@@ -215,6 +242,7 @@ export default function HomePage() {
     })();
 
     return () => {
+      cancelled = true;
       visObs.disconnect();
       window.removeEventListener("scroll", scheduleSync);
       window.removeEventListener("resize", onResize);
@@ -310,7 +338,11 @@ export default function HomePage() {
     const card = document.querySelector(".hero-info-card");
     if (!heroSection || !card) return undefined;
 
+    let rafId = 0;
+    let lastOpacity = -1;
+
     const syncHeroCard = () => {
+      rafId = 0;
       const viewport = window.innerHeight || 1;
       const heroTop = heroSection.offsetTop;
       const heroBottom = heroTop + heroSection.offsetHeight;
@@ -324,17 +356,23 @@ export default function HomePage() {
       else o = (stickyEnd - scrollY) / fadePx;
       if (scrollY >= heroBottom) o = 0;
 
+      if (Math.abs(o - lastOpacity) < 0.005) return;
+      lastOpacity = o;
       card.style.opacity = String(o);
-      card.classList.toggle("hero-card-faded-out", o < 0.02);
-      card.setAttribute("aria-hidden", o < 0.02 ? "true" : "false");
+      const faded = o < 0.02;
+      card.classList.toggle("hero-card-faded-out", faded);
+      card.setAttribute("aria-hidden", faded ? "true" : "false");
     };
 
-    syncHeroCard();
-    window.addEventListener("scroll", syncHeroCard, { passive: true });
-    window.addEventListener("resize", syncHeroCard);
+    const schedule = () => { if (!rafId) rafId = requestAnimationFrame(syncHeroCard); };
+
+    schedule();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
     return () => {
-      window.removeEventListener("scroll", syncHeroCard);
-      window.removeEventListener("resize", syncHeroCard);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      if (rafId) cancelAnimationFrame(rafId);
     };
   }, []);
 
@@ -453,14 +491,22 @@ export default function HomePage() {
                 </h2>
               </div>
               <div className="trust-logos" aria-label="Sertifikalarımız">
-                <div className="trust-logo trust-logo--light">
-                  <img src="/cert-logos/iso-9001.png" alt="ISO 9001" loading="lazy" decoding="async" />
+                <div className="trust-logo trust-logo--light trust-logo--badge">
+                  <span className="trust-badge-mark trust-badge-mark--blue">ISO</span>
+                  <span className="trust-badge-meta">
+                    <span className="trust-badge-title">9001</span>
+                    <span className="trust-badge-sub">Quality Management</span>
+                  </span>
                 </div>
                 <div className="trust-logo trust-logo--light">
-                  <img src="/cert-logos/ce-f400.png" alt="CE F400" loading="lazy" decoding="async" />
+                  <img src="/cert-icons/ce.svg" alt="CE" loading="lazy" decoding="async" />
                 </div>
-                <div className="trust-logo trust-logo--light">
-                  <img src="/cert-logos/tse-hyb.png" alt="TSE HYB" loading="lazy" decoding="async" />
+                <div className="trust-logo trust-logo--light trust-logo--badge">
+                  <span className="trust-badge-mark trust-badge-mark--cyan">TSE</span>
+                  <span className="trust-badge-meta">
+                    <span className="trust-badge-title">HYB</span>
+                    <span className="trust-badge-sub">Hizmet Yeterlilik</span>
+                  </span>
                 </div>
                 <div className="trust-logo trust-logo--light">
                   <img src="/cert-icons/iso-english.svg" alt="ISO Certified" loading="lazy" decoding="async" />
