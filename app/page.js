@@ -166,10 +166,17 @@ export default function HomePage() {
       const cw = canvas.width;
       const ch = canvas.height;
       if (!cw || !ch || !bm) return;
-      const scale = Math.max(cw / bm.width, ch / bm.height);
+      const canvasAspect = cw / ch;
+      const videoAspect = bm.width / bm.height;
+      // 16:9'dan dar ekranlarda (MacBook 16:10, tablet, telefon) contain — tam video görünür
+      const useContain = canvasAspect < videoAspect * 0.92;
+      const scale = useContain
+        ? Math.min(cw / bm.width, ch / bm.height)
+        : Math.max(cw / bm.width, ch / bm.height);
       const dw = bm.width * scale;
       const dh = bm.height * scale;
-      ctx.clearRect(0, 0, cw, ch);
+      ctx.fillStyle = "#04101c";
+      ctx.fillRect(0, 0, cw, ch);
       ctx.drawImage(bm, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
     };
 
