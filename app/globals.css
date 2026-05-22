@@ -792,6 +792,8 @@ h1 span {
   top: var(--header-offset);
   width: 100%;
   height: calc(100vh - var(--header-offset));
+  max-width: 100%;
+  max-height: calc(100vh - var(--header-offset));
   object-fit: cover;
   object-position: center center;
   display: block;

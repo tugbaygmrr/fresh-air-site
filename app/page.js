@@ -169,7 +169,7 @@ export default function HomePage() {
       const canvasAspect = cw / ch;
       const videoAspect = bm.width / bm.height;
       // 16:9'dan dar ekranlarda (MacBook 16:10, tablet, telefon) contain — tam video görünür
-      const useContain = canvasAspect < videoAspect * 0.92;
+      const useContain = canvasAspect < videoAspect * 1.05;
       const scale = useContain
         ? Math.min(cw / bm.width, ch / bm.height)
         : Math.max(cw / bm.width, ch / bm.height);
